@@ -21,7 +21,7 @@ class Board:
         self.empty_sqrs = self.squares
         self.marked_sqrs =0
     
-    def final_state(self):
+    def final_state(self,show_win = False):
         # '''
         #     return 0 if there is no win yet
         #     return 1 if player 1 wins
@@ -30,16 +30,37 @@ class Board:
         #vertical wins
         for col in range(cols):
             if self.squares[0][col]==self.squares[1][col]==self.squares[2][col] !=0:
+                if show_win:
+                    color= circle_color if self.squares[0][col] ==2 else cross_color
+                    initial_position = (col*sq_Size +sq_Size /2,20)
+                    final_position = (col*sq_Size+ sq_Size/2,height-20)
+                    pygame.draw.line(screen,color,initial_position,final_position,line_width)
                 return self.squares[0][col]
         #horizontal wins
         for row in range(rows):
             if self.squares[row][0]==self.squares[row][1]==self.squares[row][2] !=0:
+                if show_win:
+                    color= circle_color if self.squares[row][0] ==2 else cross_color
+                    initial_position = (20,row*sq_Size+sq_Size/2)
+                    final_position = (width-20,row*sq_Size+sq_Size/2)
+                    pygame.draw.line(screen,color,initial_position,final_position,line_width)
                 return self.squares[row][0]
         #desc win
         if self.squares[0][0]== self.squares[1][1]==self.squares[2][2]!=0:
+            if show_win:
+                    color= circle_color if self.squares[0][0] ==2 else cross_color
+                    initial_position = (20,20)
+                    final_position = (width-20,height-20)
+                    pygame.draw.line(screen,color,initial_position,final_position,line_width)
             return self.squares[1][1]
         #asc win
         if self.squares[0][2]== self.squares[1][1]==self.squares[2][0]!=0:
+            if show_win:
+                    color= circle_color if self.squares[0][2] ==2 else cross_color
+                    initial_position = (20,height-20)
+                    final_position = (width-20,20)
+                    pygame.draw.line(screen,color,initial_position,final_position,line_width)
+                    
             return self.squares[1][1]
         #IF NOTHING RETURN 0
         return 0
@@ -148,6 +169,11 @@ class Game:
     def next_turn(self):
         self.player = self.player %2 + 1
     
+    def make_move(self,row,col):
+        self.board.mark_sqr(row,col,self.player)
+        self.draw_fig(row,col)
+        self.next_turn()
+    
     def draw_fig(self,row,col):
         if self.player == 1 :
             #DRAW CROSS
@@ -161,6 +187,10 @@ class Game:
         elif self.player ==2:
             center =(col*sq_Size +sq_Size /2,row*sq_Size+sq_Size/2)
             pygame.draw.circle(screen,circle_color,center,radius,circle_width)
+
+    def isover(self):
+        return (self.board.final_state(show_win=True) != 0) or (self.board.isfull())
+
 
 def main():
     game = Game()
@@ -184,20 +214,21 @@ def main():
                 # print(int(row),int(col))
                 #TEST THAT IF SQUARE NOT EMPTY DO NOT PRINT THE SQAURES AGAIN and switch between player 1 and player 2
                 if board.empty_sqr(row,col) and game.running:
-                    board.mark_sqr(row,col,game.player)
-                    game.draw_fig(row,col)
-                    game.next_turn()
+                    game.make_move(row,col)
                     # print(board.squares)
                     
-        if game.game_mode =='ai' and game.player == ai.player:
+                    if game.isover():
+                        game.running = False
+        if game.game_mode =='ai' and game.player == ai.player and game.running:
             pygame.display.update()
 
             # ai methods
             row , col = ai.eval(board)
             if board.empty_sqr(row,col):
-                board.mark_sqr(row,col,ai.player)
-                game.draw_fig(row,col)
-                game.next_turn()       
+                game.make_move(row,col) 
+                
+            if game.isover():
+                game.running = False    
                         
         pygame.display.update()
         
