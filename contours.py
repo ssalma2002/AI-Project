@@ -1,5 +1,6 @@
 import cv2 as cv
 import numpy as np
+
 # Reading an image 
 img = cv.imread('test1.jpg')
 cv.imshow("TicTacToe",img)
